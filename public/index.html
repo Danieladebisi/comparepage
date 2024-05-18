@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Comparison</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Device Comparison</h1>
+    <input type="text" id="search" placeholder="Search for a device...">
+    <button onclick="searchDevice()">Search</button>
+    <div id="device-list"></div>
+    
+    <script>
+        async function fetchDevices() {
+            try {
+                const response = await fetch('/api/devices');
+                const devices = await response.json();
+                displayDevices(devices);
+            } catch (error) {
+                console.error('Error fetching devices:', error);
+            }
+        }
+
+        function displayDevices(devices) {
+            const deviceList = document.getElementById('device-list');
+            deviceList.innerHTML = ''; // Clear existing content
+
+            devices.forEach(device => {
+                // Create a clickable device name with image
+                const deviceContainer = document.createElement('div');
+                deviceContainer.className = 'device-container';
+
+                const deviceImage = document.createElement('img');
+                deviceImage.src = device.image;
+                deviceImage.alt = device.name;
+                deviceImage.className = 'device-image';
+
+                const deviceName = document.createElement('div');
+                deviceName.className = 'device-name';
+                deviceName.textContent = device.name;
+                deviceName.addEventListener('click', () => toggleDeviceDetails(deviceName));
+
+                deviceContainer.appendChild(deviceImage);
+                deviceContainer.appendChild(deviceName);
+
+                deviceList.appendChild(deviceContainer);
+
+                // Create a hidden div for device details
+                const deviceDetails = document.createElement('div');
+                deviceDetails.className = 'device-details';
+                deviceDetails.style.display = 'none'; // Initially hide details
+
+                // Populate device details
+                const detailsContent = `
+                    <table>
+                        <tr>
+                            <td>Display</td>
+                            <td>${device.display}</td>
+                        </tr>
+                        <tr>
+                            <td>Processor</td>
+                            <td>${device.processor}</td>
+                        </tr>
+                        <tr>
+                            <td>RAM</td>
+                            <td>${device.ram}</td>
+                        </tr>
+                        <tr>
+                            <td>Storage</td>
+                            <td>${device.storage}</td>
+                        </tr>
+                        <tr>
+                            <td>Camera</td>
+                            <td>${device.camera}</td>
+                        </tr>
+                        <tr>
+                            <td>Battery</td>
+                            <td>${device.battery}</td>
+                        </tr>
+                        <tr>
+                            <td>OS</td>
+                            <td>${device.os}</td>
+                        </tr>
+                        <tr>
+                            <td>Price</td>
+                            <td>$${device.price}</td>
+                        </tr>
+                    </table>
+                `;
+                deviceDetails.innerHTML = detailsContent;
+
+                deviceList.appendChild(deviceDetails);
+            });
+        }
+
+        function toggleDeviceDetails(deviceName) {
+            // Toggle visibility of device details
+            const deviceDetails = deviceName.nextElementSibling;
+            deviceDetails.style.display = deviceDetails.style.display === 'none' ? 'block' : 'none';
+        }
+
+        async function searchDevice() {
+            const searchInput = document.getElementById('search').value;
+            try {
+                const response = await fetch(`/api/devices/${encodeURIComponent(searchInput)}`);
+                const device = await response.json();
+                if (device) {
+                    displayDevices([device]);
+                } else {
+                    document.getElementById('device-list').innerHTML = 'No device found.';
+                }
+            } catch (error) {
+                console.error('Error fetching device:', error);
+                document.getElementById('device-list').innerHTML = 'Error fetching device.';
+            }
+        }
+
+        // Fetch all devices on page load
+        fetchDevices();
+    </script>
+</body>
+</html>
